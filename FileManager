@@ -1,0 +1,76 @@
+/**
+ *@environment 메신저봇R, Rhino javascript 1.7.15
+ * 
+ * MIT License @Rtyuuu57 (spear)
+ * Copyright (c) 2024 Rtyuuu57
+ *
+ * https://github.com/Rtyuuu57/spear/blob/main/LICENSE#L8
+ *
+ */
+"use strict";
+module.exports = (function() {
+    const fileSystem = java.nio.file.Files;
+    const paths = java.nio.file.Paths;
+    const StandardOpenOption = java.nio.file.StandardOpenOption;
+
+    function FileManager() {
+        if (this instanceof FileManager) {
+            throw new Error("class FileManager is static; cannot be used as a constructor");
+        }
+    }
+
+    FileManager.getWrite = function(path, content) {
+        const filePath = paths.get(path);
+        fileSystem.write(filePath, java.util.Collections.singleton(content).toArray(), StandardOpenOption.CREATE);
+    };
+
+    FileManager.getFileCreationDate = function(path) {
+        const filePath = paths.get(path);
+        const attributes = fileSystem.readAttributes(filePath, "basic:creationTime");
+        return attributes.creationTime().toString();
+    };
+
+    FileManager.getFileSize = function(path) {
+        const filePath = paths.get(path);
+        const attributes = fileSystem.readAttributes(filePath, "basic:size");
+        return attributes.size();
+    };
+
+    FileManager.getRead = function(path) {
+        const filePath = paths.get(path);
+        return new java.lang.String(fileSystem.readAllBytes(filePath), "UTF-8");
+    };
+
+    FileManager.getFileLastModifiedDate = function(path) {
+        const filePath = paths.get(path);
+        const attributes = fileSystem.readAttributes(filePath, "basic:lastModifiedTime");
+        return attributes.lastModifiedTime().toString();
+    };
+
+    FileManager.getFilePath = function(path) {
+        const filePath = paths.get(path);
+        return filePath.toAbsolutePath().toString();
+    };
+
+    FileManager.getFileExists = function(path) {
+        const filePath = paths.get(path);
+        return fileSystem.exists(filePath);
+    };
+
+    FileManager.isDirectory = function(path) {
+        const filePath = paths.get(path);
+        return fileSystem.isDirectory(filePath);
+    };
+
+    FileManager.copyDirectory = function(sourcePath, targetPath) {
+        const sourceDir = paths.get(sourcePath);
+        const targetDir = paths.get(targetPath);
+        fileSystem.walk(sourceDir).forEach(filePath => {
+            const targetFilePath = targetDir.resolve(sourceDir.relativize(filePath));
+            fileSystem.copy(filePath, targetFilePath);
+        });
+    };
+
+    return FileManager;
+})();
+
